@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLocacaosTable extends Migration
+class AlterCarrosTableAddForeignKey extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateLocacaosTable extends Migration
      */
     public function up()
     {
-        Schema::create('locacaos', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('carros', function (Blueprint $table) {
+            $table->unsignedBigInteger('modelo_id');
+            $table->foreign('modelo_id')->references('id')->on('modelos');
         });
     }
 
@@ -26,6 +26,6 @@ class CreateLocacaosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('locacaos');
+        //
     }
 }

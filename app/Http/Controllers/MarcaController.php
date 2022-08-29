@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Marca;
 use App\Http\Requests\StoreMarcaRequest;
 use App\Http\Requests\UpdateMarcaRequest;
-use Ramsey\Uuid\Type\Integer;
+use Illuminate\Support\Facades\Storage;
 
 class MarcaController extends Controller
 {
@@ -39,7 +39,14 @@ class MarcaController extends Controller
     {
         $request->validate($this->marca->rules(), $this->marca->feedback());
 
-        $marca = $this->marca->create($request->all());
+        $imagem = $request->file('imagem');
+
+        $urn = $imagem->store('imagens', 'public');
+
+        $marca = $this->marca->create([
+            'nome'=>$request->get('nome'),
+            'imagem'=>$urn
+        ]);
 
         return response()->json($marca, 201);
     }
@@ -73,8 +80,6 @@ class MarcaController extends Controller
     {
         $marca = $this->marca->find($id);
 
-        dd($request->nome);
-
         if($marca == null)
         {
             return response()->json(['error'=>'Nao foi possivel encontrar o recurso solicitado'], 404);
@@ -84,18 +89,33 @@ class MarcaController extends Controller
         {
             $regrasDinamicas = [];
 
-            foreach($request->all() as $key => $value)
+            foreach($this->marca->rules() as $key => $value)
             {
-                echo $key.' : '.$value;
-                echo '<br>';
+                if(array_key_exists($key, $request->all()))
+                {
+                    $regrasDinamicas[$key] = $value;
+                }
             }
+
+            $request->validate($regrasDinamicas, $this->marca->feedback());
         }
         else
         {
             $request->validate($this->marca->rules(), $this->marca->feedback());
         }
 
+        if($request->file('imagem'))
+        {
+            Storage::disk('public')->delete($marca->imagem);
+        }
+
+        $imagem = $request->file('imagem');
+
+        $urn = $imagem->store('imagens', 'public');
+
         $marca->update($request->all());
+
+        return response()->json(['success'=>'Marca atualizada com sucesso'], 200);
 
     }
 
@@ -105,8 +125,19 @@ class MarcaController extends Controller
      * @param  \App\Models\Marca  $marca
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Marca $marca)
+    public function destroy($id)
     {
-        //
+        $marca = $this->marca->find($id);
+
+        if($marca == null)
+        {
+            return response()->json(['error'=>'Nao foi possivel encontrar o recurso solicitado'], 404);
+        }
+
+        Storage::disk('public')->delete($marca->imagem);
+
+        $marca->delete();
+
+        return response()->json(['success'=>'Marca deletada com sucesso'], 200);
     }
 }

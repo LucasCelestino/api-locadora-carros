@@ -33,4 +33,9 @@ class Modelo extends Model
             'boolean'=>'O campo :attribute só aceita valores true ou false'
         ];
     }
+
+    public function marca()
+    {
+        return $this->belongsTo('App\Models\Marca', 'marca_id');
+    }
 }

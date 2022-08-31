@@ -41,7 +41,7 @@ class MarcaController extends Controller
 
         $imagem = $request->file('imagem');
 
-        $urn = $imagem->store('imagens', 'public');
+        $urn = $imagem->store('imagens/marcas', 'public');
 
         $marca = $this->marca->create([
             'nome'=>$request->get('nome'),
@@ -78,7 +78,7 @@ class MarcaController extends Controller
      */
     public function update(UpdateMarcaRequest $request,$id)
     {
-        $marca = $this->marca->find($id);
+        $marca = Marca::find($id);
 
         if($marca == null)
         {
@@ -107,16 +107,23 @@ class MarcaController extends Controller
         if($request->file('imagem'))
         {
             Storage::disk('public')->delete($marca->imagem);
+
+            $imagem = $request->file('imagem');
+
+            $urn = $imagem->store('imagens/marcas', 'public');
+
+            $marca->fill($request->all());
+
+            $marca->imagem = $urn;
+        }
+        else
+        {
+            $marca->fill($request->all());
         }
 
-        $imagem = $request->file('imagem');
-
-        $urn = $imagem->store('imagens', 'public');
-
-        $marca->update($request->all());
+        $marca->save();
 
         return response()->json(['success'=>'Marca atualizada com sucesso'], 200);
-
     }
 
     /**

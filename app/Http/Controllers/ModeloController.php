@@ -40,7 +40,7 @@ class ModeloController extends Controller
 
         $imagem = $request->file('imagem');
 
-        $urn = $imagem->store('imagens', 'public');
+        $urn = $imagem->store('imagens/modelos', 'public');
 
         $modelo = Modelo::create([
             'marca_id'=>$request->get('marca_id'),
@@ -93,7 +93,7 @@ class ModeloController extends Controller
         {
             $regrasDinamicas = [];
 
-            foreach($this->marca->rules() as $key => $value)
+            foreach($this->modelo->rules() as $key => $value)
             {
                 if(array_key_exists($key, $request->all()))
                 {
@@ -111,21 +111,21 @@ class ModeloController extends Controller
         if($request->file('imagem'))
         {
             Storage::disk('public')->delete($modelo->imagem);
+
+            $imagem = $request->file('imagem');
+
+            $urn = $imagem->store('imagens/modelos', 'public');
+
+            $modelo->fill($request->all());
+
+            $modelo->imagem = $urn;
+        }
+        else
+        {
+            $modelo->fill($request->all());
         }
 
-        $imagem = $request->file('imagem');
-
-        $urn = $imagem->store('imagens', 'public');
-
-        $modelo->update([
-            'marca_id'=>$request->get('marca_id'),
-            'nome'=>$request->get('nome'),
-            'imagem'=>$urn,
-            'numero_portas'=>$request->get('numero_portas'),
-            'lugares'=>$request->get('lugares'),
-            'air_bag'=>$request->get('air_bag'),
-            'abs'=>$request->get('abs')
-        ]);
+        $modelo->save();
 
         return response()->json(['success'=>'Modelo atualizado com sucesso'], 200);
     }

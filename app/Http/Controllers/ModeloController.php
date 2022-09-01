@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Modelo;
 use App\Http\Requests\StoreModeloRequest;
 use App\Http\Requests\UpdateModeloRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ModeloController extends Controller
@@ -21,11 +22,29 @@ class ModeloController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $modelos = $this->modelo->with('marca')->get();
 
-        return response()->json($modelos, 200);
+        $modelos = array();
+
+        if($request->has('atributos'))
+        {
+            $atributos = $request->atributos;
+            $modelos = $this->modelo->selectRaw($atributos)->with('marca');
+        }
+        else
+        {
+            $modelos = $this->modelo->with('marca');
+        }
+
+        if($request->has('filtro'))
+        {
+            $condicoes = explode(":", $request->filtro);
+
+            $modelos->where($condicoes[0], $condicoes[1], $condicoes[2]);
+        }
+
+        return response()->json($modelos->get(), 200);
     }
 
     /**

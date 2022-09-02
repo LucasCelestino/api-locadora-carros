@@ -1,0 +1,2 @@
+repository para modelos --
+rest para carro,cliente,locacao 

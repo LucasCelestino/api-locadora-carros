@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Modelo;
 use App\Http\Requests\StoreModeloRequest;
 use App\Http\Requests\UpdateModeloRequest;
+use App\Repositories\ModeloRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -24,27 +25,23 @@ class ModeloController extends Controller
      */
     public function index(Request $request)
     {
-
-        $modelos = array();
+        $modeloRepository = new ModeloRepository($this->modelo);
 
         if($request->has('atributos'))
         {
-            $atributos = $request->atributos;
-            $modelos = $this->modelo->selectRaw($atributos)->with('marca');
+            $modeloRepository->selectAtributosRegistros($request->atributos);
         }
         else
         {
-            $modelos = $this->modelo->with('marca');
+            $modeloRepository->selectWith();
         }
 
         if($request->has('filtro'))
         {
-            $condicoes = explode(":", $request->filtro);
-
-            $modelos->where($condicoes[0], $condicoes[1], $condicoes[2]);
+            $modeloRepository->filtro($request->filtro);
         }
 
-        return response()->json($modelos->get(), 200);
+        return response()->json($modeloRepository->getResultado(), 200);
     }
 
     /**

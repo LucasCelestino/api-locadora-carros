@@ -8,6 +8,12 @@ use App\Http\Requests\UpdateClienteRequest;
 
 class ClienteController extends Controller
 {
+    private Cliente $cliente;
+
+    public function __construct(Cliente $clienteParam)
+    {
+        $this->cliente = $clienteParam;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,17 +21,9 @@ class ClienteController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $clientes = $this->cliente->all();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return response()->json($clientes, 200);
     }
 
     /**
@@ -36,7 +34,13 @@ class ClienteController extends Controller
      */
     public function store(StoreClienteRequest $request)
     {
-        //
+        $request->validate($this->cliente->rules(), $this->cliente->feedback());
+
+        $cliente = $this->cliente->create([
+            'nome'=>$request->get('nome')
+        ]);
+
+        return response()->json($cliente, 201);
     }
 
     /**
@@ -45,20 +49,16 @@ class ClienteController extends Controller
      * @param  \App\Models\Cliente  $cliente
      * @return \Illuminate\Http\Response
      */
-    public function show(Cliente $cliente)
+    public function show(int $id)
     {
-        //
-    }
+        $cliente = $this->cliente->find($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Cliente  $cliente
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Cliente $cliente)
-    {
-        //
+        if($cliente == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        return response()->json($cliente, 200);
     }
 
     /**
@@ -68,9 +68,22 @@ class ClienteController extends Controller
      * @param  \App\Models\Cliente  $cliente
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateClienteRequest $request, Cliente $cliente)
+    public function update(UpdateClienteRequest $request, int $id)
     {
-        //
+        $cliente = $this->cliente->find($id);
+
+        if($cliente == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        $request->validate($this->cliente->rules(), $this->cliente->feedback());
+
+        $cliente->fill($request->all());
+
+        $cliente->save();
+
+        return response()->json(['success'=>'Cliente atualizado com sucesso'], 200);
     }
 
     /**
@@ -79,8 +92,17 @@ class ClienteController extends Controller
      * @param  \App\Models\Cliente  $cliente
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Cliente $cliente)
+    public function destroy(int $id)
     {
-        //
+        $cliente = $this->cliente->find($id);
+
+        if($cliente == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        $cliente->delete();
+
+        return response()->json(['success'=>'Cliente deletado com sucesso'], 200);
     }
 }

@@ -8,6 +8,13 @@ use App\Http\Requests\UpdateLocacaoRequest;
 
 class LocacaoController extends Controller
 {
+    private Locacao $locacao;
+
+    public function __construct(Locacao $locacaoParam)
+    {
+        $this->locacao = $locacaoParam;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -15,17 +22,9 @@ class LocacaoController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $locacoes = $this->locacao->all();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return response()->json($locacoes, 200);
     }
 
     /**
@@ -36,7 +35,20 @@ class LocacaoController extends Controller
      */
     public function store(StoreLocacaoRequest $request)
     {
-        //
+        $request->validate($this->locacao->rules(), $this->locacao->feedback());
+
+        $locacao = $this->locacao->create([
+            'cliente_id'=>$request->get('cliente_id'),
+            'carro_id'=>$request->get('carro_id'),
+            'data_inicio_periodo'=>$request->get('data_inicio_periodo'),
+            'data_final_previsto_periodo'=>$request->get('data_final_previsto_periodo'),
+            'data_final_realizado_periodo'=>$request->get('data_final_realizado_periodo'),
+            'valor_diaria'=>$request->get('valor_diaria'),
+            'km_inicial'=>$request->get('km_inicial'),
+            'km_final'=>$request->get('km_final')
+        ]);
+
+        return response()->json($locacao, 201);
     }
 
     /**
@@ -45,20 +57,16 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function show(Locacao $locacao)
+    public function show(int $id)
     {
-        //
-    }
+        $locacao = $this->locacao->with('cliente')->with('carro')->find($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Locacao  $locacao
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Locacao $locacao)
-    {
-        //
+        if($locacao == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        return response()->json($locacao, 200);
     }
 
     /**
@@ -68,9 +76,39 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateLocacaoRequest $request, Locacao $locacao)
+    public function update(UpdateLocacaoRequest $request, int $id)
     {
-        //
+        $locacao = $this->locacao->find($id);
+
+        if($locacao == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        if($request->method() === 'PATCH')
+        {
+            $regrasDinamicas = [];
+
+            foreach($this->locacao->rules() as $key => $value)
+            {
+                if(array_key_exists($key, $request->all()))
+                {
+                    $regrasDinamicas[$key] = $value;
+                }
+            }
+
+            $request->validate($regrasDinamicas, $this->locacao->feedback());
+        }
+        else
+        {
+            $request->validate($this->locacao->rules(), $this->locacao->feedback());
+        }
+
+        $locacao->fill($request->all());
+
+        $locacao->save();
+
+        return response()->json(['success'=>'Locacao atualizada com sucesso'], 200);
     }
 
     /**
@@ -79,8 +117,17 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Locacao $locacao)
+    public function destroy(int $id)
     {
-        //
+        $locacao = $this->locacao->find($id);
+
+        if($locacao == null)
+        {
+            return response()->json(['error'=>'Não foi possível encontrar o recurso solicitado'], 404);
+        }
+
+        $locacao->delete();
+
+        return response()->json(['success'=>'Locacao deletada com sucesso'], 200);
     }
 }

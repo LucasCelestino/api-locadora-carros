@@ -13,16 +13,16 @@ class CreateLocacoesTable extends Migration
      */
     public function up()
     {
-        Schema::create('locacaos', function (Blueprint $table) {
+        Schema::create('locacoes', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('cliente_id');
             $table->unsignedBigInteger('carro_id');
             $table->dateTime('data_inicio_periodo');
             $table->dateTime('data_final_previsto_periodo');
-            $table->dateTime('data_final_realizado_periodo');
+            $table->dateTime('data_final_realizado_periodo')->nullable();
             $table->float('valor_diaria');
             $table->integer('km_inicial');
-            $table->string('km_final', 45);
+            $table->string('km_final', 45)->nullable();
             $table->timestamps();
 
             $table->foreign('cliente_id')->references('id')->on('clientes');

@@ -13,7 +13,7 @@ class StoreLocacaoRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**

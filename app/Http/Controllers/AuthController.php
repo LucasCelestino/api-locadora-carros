@@ -22,17 +22,21 @@ class AuthController extends Controller
 
     public function logout()
     {
-        return 'logout';
+        auth('logout')->logout();
+
+        return response()->json(['message'=>'Logout foi realizado com sucesso.']);
     }
 
     public function refresh()
     {
-        return 'refresh';
+        $token = auth('api')->refresh();
+
+        return $this->respondWithToken($token);
     }
 
     public function me()
     {
-        dd(auth('api')->user());
+        return response()->json(auth('api')->user());
     }
 
     protected function respondWithToken($token)
